@@ -5,10 +5,10 @@
 
      VERIF = verificaEP01
       PROG = labZero
-      OBJS = utils.o ZeroFuncao.o
+      OBJS = utils.o ZeroFuncao.o 
 
 # Lista de arquivos para distribuição
-DISTFILES = *.c *.h Makefile polinomio*.dat
+DISTFILES = *.c *.h Makefile *.dat 
 DISTDIR = ${USER}
 
 .PHONY: clean purge dist all
