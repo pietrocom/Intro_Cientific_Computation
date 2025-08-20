@@ -12,80 +12,145 @@ real_t calcPolinomio (Polinomio pol, real_t x, real_t *px, real_t *dpx, bool ehC
 }
 
 // Retorna valor do erro quando método finalizou. Este valor depende de tipoErro
-real_t newtonRaphson (Polinomio pol, real_t x0, int criterioParada, int *it, real_t *raiz)
-{
-    
+real_t newtonRaphson (Polinomio pol, real_t x0, CriterioParada cp, int *it, real_t *raiz, bool ehCalcLento) {
+    if (it) 
+        *it = 0;
+
+    real_t x_new = x0;
+    real_t x_old;
+    real_t fx, dfx;
+    real_t erro = INFINITY; // Começa com erro máximo
+
+    bool critParada = false;
+
+    // Função de cálculo de polinômio (lento ou rápido)
+    real_t (*calcPol)(Polinomio, real_t, real_t*, real_t*, bool) = calcPolinomio;
+
+    while (!critParada && (*it < MAXIT)) {
+        x_old = x_new;
+
+        calcPol(pol, x_old, &fx, &dfx, ehCalcLento);
+
+        // Verifica se a derivada é próxima de zero para evitar divisão por zero
+        if (fabs(dfx) < ZERO) {
+            fprintf(stderr, "ERRO: Derivada próxima de zero em Newton-Raphson.\n");
+            *raiz = x_old;
+            return NAN; 
+        }
+
+        // Fórmula de Newton-Raphson
+        x_new = x_old - (fx / dfx);
+        
+        *it += 1;
+
+        // Controla qual critério é utilizado para fim do laço
+        switch (cp) {
+            case CRIT1:
+                // Evita divisão por zero se x_new for muito pequeno
+                if (fabs(x_new) > ZERO)
+                    erro = fabs(x_new - x_old) / fabs(x_new);
+                else
+                    erro = fabs(x_new - x_old);
+                critParada = (erro <= EPS);
+                break;
+            case CRIT2:
+                // O erro é o valor absoluto da função no novo ponto
+                calcPol(pol, x_new, &fx, &dfx, ehCalcLento);
+                erro = fabs(fx);
+                critParada = (erro <= ZERO);
+                break;
+            case CRIT3:
+                erro = ulp_distance(x_new, x_old);
+                critParada = (erro <= ULPS);
+                break;
+        }
+    }
+
+    *raiz = x_new;
+    return erro;
 }
 
 
 // Retorna valor do erro quando método finalizou. Este valor depende de tipoErro
-real_t bisseccao (Polinomio pol, real_t a, real_t b, CriterioParada cp, int *it, real_t *raiz, bool ehCalcLento)
-{
-    if (it && (*it != 0))
+real_t bisseccao (Polinomio pol, real_t a, real_t b, CriterioParada cp, int *it, real_t *raiz, bool ehCalcLento) {
+    if (it) 
         *it = 0;
 
-    if (a < b) {
+    // Garante que a < b para o intervalo [a, b]
+    if (a > b) {
         real_t aux = a;
         a = b;
         b = aux;
     }
 
-    real_t xm_new, xm_old;
+    real_t xm_new, xm_old = a; 
+    real_t fa, fx, dfx;
+    real_t erro = INFINITY;
 
-    xm_new = (a + b) / 2;
+    // Função de cálculo de polinômio (lento ou rápido)
+    real_t (*calcPol)(Polinomio, real_t, real_t*, real_t*, bool) = calcPolinomio;
 
-    real_t fa, dfa, fx, dfx;
-
-    calcPolinomio(pol, a, &fa, &dfa, ehCalcLento);
-    calcPolinomio(pol, xm_new, &fx, &dfx, ehCalcLento);
-
-    if (fa * fx < 0) 
-        b = xm_new;
-    else if (fa * fx > 0)
-        a = xm_new;
-    else
-        return xm_new;
-
-    bool critParada = false;
+    calcPol(pol, a, &fa, &dfx, ehCalcLento);
 
     // Laço principal
-    while (!critParada && (*it < MAXIT)) {
+    while (*it < MAXIT) {
+        xm_new = (a + b) / 2.0;
+        calcPol(pol, xm_new, &fx, &dfx, ehCalcLento);
+        
+        *it += 1;
 
-        xm_old = xm_new;
-        xm_new = (a + b) / 2;
-
-        calcPolinomio(pol, a, &fa, &dfa, ehCalcLento);
-        calcPolinomio(pol, xm_new, &fx, &dfx, ehCalcLento);
-
-        if (fa * fx < 0) 
-            b = xm_new;
-        else if (fa * fx > 0)
-            a = xm_new;
-        else
-            return xm_new;
-
-        // Controla qual critério é utilizado para fim do laço
+        // Verifica o critério de parada
+        bool critParada = false;
         switch (cp) {
             case CRIT1:
-                critParada = (fabs(xm_new - xm_old) / fabs(xm_new)) <= 10e-7;
+                if (fabs(xm_new) > ZERO)
+                    erro = fabs(xm_new - xm_old) / fabs(xm_new);
+                else
+                    erro = fabs(xm_new - xm_old);
+                critParada = (erro <= EPS);
                 break;
             case CRIT2:
-                critParada = fabs(fx) <= DBL_EPSILON;
+                erro = fabs(fx);
+                critParada = (erro <= ZERO);
                 break;
             case CRIT3:
-                critParada = ulp_distance(xm_new, xm_old) <= 3;
+                erro = ulp_distance(xm_new, xm_old);
+                critParada = (erro <= ULPS);
                 break;
         }
 
-        *it += 1;
+        if (critParada) {
+            *raiz = xm_new;
+            return erro;
+        }
+        
+        // Atualiza o intervalo
+        if (fa * fx < 0) {
+            b = xm_new; // A raiz está no intervalo [a, xm]
+        } else {
+            a = xm_new; // A raiz está no intervalo [xm, b]
+            fa = fx;    // Otimização: f(a) para a próxima iteração será o f(x) atual
+        }
+        
+        xm_old = xm_new;
     }
 
+    *raiz = xm_new;
+    return erro;
 }
 
 
 real_t calcPolinomio_rapido(Polinomio pol, real_t x, real_t *px, real_t *dpx)
 {
+    *px = pol.p[pol.grau];
+    *dpx = 0.0;
+    
+    for (int i = pol.grau - 1; i >= 0; i--) {
+        *dpx = (*dpx) * x + (*px);
+        *px = (*px) * x + pol.p[i];
+    }
 
+    return *px;
 }
 
 

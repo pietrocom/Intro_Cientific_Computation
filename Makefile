@@ -1,7 +1,7 @@
     CC     = gcc
 
     CFLAGS = -O0
-    LFLAGS = -lm
+    LFLAGS = -lm -lrt
 
      VERIF = verificaEP01
       PROG = labZero
@@ -9,7 +9,7 @@
 
 # Lista de arquivos para distribuição
 DISTFILES = *.c *.h Makefile *.dat 
-DISTDIR = ${USER}
+DISTDIR = pc24
 
 .PHONY: clean purge dist all
 
