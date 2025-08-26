@@ -12,12 +12,36 @@
 
 static int encontraMax(SistLinear_t *C, int k, int n)
 {
-  
+  if (!C)
+    return -1;
+
+  real_t max = C->A[0][k];
+  int linha = 0;
+  for (int i = 0; i < n; i++) {
+    real_t aux = C->A[i][k];
+    if (aux > max) {
+      max = aux;
+      linha = i;
+    }
+  }
+
+  return linha;
 }
 
 static void trocaLinha (SistLinear_t *C, int k, int p, int n)
 {
-  
+  if (!C)
+    return;
+
+  for (int i = 0; i < n; i++) {
+    real_t aux = C->A[k][i];
+    C->A[k][i] = C->A[p][i];
+    C->A[p][i] = aux;
+  }
+
+  real_t aux = C->b[k];
+  C->b[k] = C->b[p];
+  C->b[p] = aux;
 }
 
 /* Seja um S.L. de ordem 'n'
@@ -25,7 +49,7 @@ static void trocaLinha (SistLinear_t *C, int k, int p, int n)
  */
 void triangulariza( SistLinear_t *C )
 {
- 
+  
 }
 
 void retrosubst( SistLinear_t *C, real_t *X )

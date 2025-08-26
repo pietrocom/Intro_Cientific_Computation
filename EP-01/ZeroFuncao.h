@@ -25,12 +25,11 @@ typedef enum {
 
 // Métodos
 // Retornam valor do erro quando método finalizou. Este valor depende de tipoErro
-
-real_t newtonRaphson (Polinomio pol, real_t x0, int criterioParada, int *it, real_t *raiz);
-real_t bisseccao (Polinomio pol, real_t a, real_t b, int criterioParada, int *it, real_t *raiz, bool ehCalcLento);
+real_t newtonRaphson (Polinomio pol, real_t x0, CriterioParada cp, int *it, real_t *raiz, bool ehCalcLento);
+real_t bisseccao (Polinomio pol, real_t a, real_t b, CriterioParada cp, int *it, real_t *raiz, bool ehCalcLento);
 
 // Cálculo de Polinômios
-void calcPolinomio_rapido(Polinomio pol, real_t x, real_t *px, real_t *dpx );
+real_t calcPolinomio_rapido(Polinomio pol, real_t x, real_t *px, real_t *dpx);
 real_t calcPolinomio_lento(Polinomio pol, real_t x, real_t *dx, real_t *dpx);
 
 #endif // __ZEROFUNCAO_H__

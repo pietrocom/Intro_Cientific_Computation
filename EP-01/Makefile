@@ -1,15 +1,15 @@
     CC     = gcc
 
     CFLAGS = -O0
-    LFLAGS = -lm
+    LFLAGS = -lm -lrt
 
      VERIF = verificaEP01
       PROG = labZero
-      OBJS = utils.o ZeroFuncao.o
+      OBJS = utils.o ZeroFuncao.o 
 
 # Lista de arquivos para distribuição
-DISTFILES = *.c *.h Makefile polinomio*.dat
-DISTDIR = ${USER}
+DISTFILES = *.c *.h Makefile *.dat 
+DISTDIR = pc24
 
 .PHONY: clean purge dist all
 
