@@ -6,9 +6,6 @@ VERIF = verificaEP02
 # Compilador
 CC = gcc
 
-# Opções para compilação com LIKWID. 
-# ATENÇÃO: pode ser necessário adicionar os caminhos para os includes e libs do LIKWID,
-# por exemplo: -I/usr/local/include -L/usr/local/lib
 CFLAGS = -O0 -DLIKWID_PERFMON -I/usr/include
 LFLAGS = -lm -llikwid
 

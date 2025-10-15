@@ -1,4 +1,5 @@
 // pc24 - GRR20241955
+
 // Implementação das funções para manipulação e solução
 // da Equação Diferencial Ordinária (EDO).
 
@@ -13,8 +14,7 @@
 #define RESIDUE_TOL 1e-5
 
 // Gera a estrutura do sistema linear tridiagonal a partir dos parâmetros da EDO.
-Tridiag *genTridiag (EDo *edo)
-{
+Tridiag *genTridiag (EDo * edo) {
   Tridiag *sl;
   real_t x, rx;
   int n = edo->n;
@@ -49,8 +49,7 @@ Tridiag *genTridiag (EDo *edo)
 }
 
 // Imprime a matriz aumentada do sistema linear na saída padrão.
-void prnEDOsl (EDo *edoeq)
-{
+void prnEDOsl (EDo * edoeq) {
   int n = edoeq->n, i, j;
   real_t x, b, d, di, ds,rx;
   real_t h = (edoeq->b - edoeq->a)/(n+1);
@@ -90,7 +89,7 @@ void prnEDOsl (EDo *edoeq)
 
 // Soluciona um sistema linear tridiagonal pelo método de Gauss-Seidel.
 // Retorna o número de iterações executadas.
-int gaussSeidel(Tridiag *SL, real_t *Y, real_t *residue_norm) {
+int gaussSeidel(Tridiag * SL, real_t * Y, real_t * residue_norm) {
     int n = SL->n;
     
     // Inicializa o vetor solução Y com zeros
@@ -113,7 +112,7 @@ int gaussSeidel(Tridiag *SL, real_t *Y, real_t *residue_norm) {
             Y[i] = sum / SL->D[i];
         }
         
-        // Calcula a norma L2 do resíduo ||b - Ax_k||
+        // Calcula a norma do resíduo
         real_t norm_sq = 0.0;
         for (int i = 0; i < n; ++i) {
             real_t Ax_i = SL->D[i] * Y[i];
@@ -131,6 +130,6 @@ int gaussSeidel(Tridiag *SL, real_t *Y, real_t *residue_norm) {
         }
     }
 
-    // Retorna o número máximo de iterações se não convergiu
+    // Não convergiu
     return MAX_ITER;
 }
