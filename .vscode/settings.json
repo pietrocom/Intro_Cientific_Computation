@@ -2,7 +2,8 @@
     "files.associations": {
         "stdio.h": "c",
         "eliminacaogauss.h": "c",
-        "sislin.h": "c"
+        "sislin.h": "c",
+        "utils.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

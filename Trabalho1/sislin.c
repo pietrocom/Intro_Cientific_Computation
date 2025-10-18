@@ -216,30 +216,160 @@ void genSimetricaPositiva(real_t **A, real_t *b, int n, real_t ***ASP, real_t **
 
 
 
-void geraDLU (real_t *A, int n, int k, real_t **D, real_t **L, real_t **U, rtime_t *tempo)
-{
+void geraDLU(real_t **A, int n, DLU_matrices_t **matrices, rtime_t *tempo) {
+  if (!A) {
+    fprintf(stderr, "ERRO: Matriz de entrada A é nula!\n");
+    exit(EXIT_FAILURE);
+  }
+    
   *tempo = timestamp();
 
+  *matrices = malloc(sizeof(DLU_matrices_t));
+  if (!(*matrices)) {
+    perror("ERRO: Durante alocação da struct DLU!\n");
+    exit(EXIT_FAILURE);
+  }
+
+  (*matrices)->D = malloc(sizeof(real_t *) * n);
+  (*matrices)->L = malloc(sizeof(real_t *) * n);
+  (*matrices)->U = malloc(sizeof(real_t *) * n);
+  if (!(*matrices)->D || !(*matrices)->L || !(*matrices)->U) {
+    perror("ERRO: Durante alocação da struct DLU!\n");
+    exit(EXIT_FAILURE);
+  }
+
+  for (int i = 0; i < n; i++) {
+    (*matrices)->D[i] = malloc(sizeof(real_t) * n);
+    (*matrices)->L[i] = malloc(sizeof(real_t) * n);
+    (*matrices)->U[i] = malloc(sizeof(real_t) * n);
+    if (!(*matrices)->D[i] || !(*matrices)->L[i] || !(*matrices)->U[i]) {
+      perror("ERRO: Durante alocação da struct DLU!\n");
+      exit(EXIT_FAILURE);
+    }
+  }
+
+  for (int i = 0; i < n; ++i) {
+    for (int j = 0; j < n; ++j) {
+      if (i > j) { 
+        (*matrices)->L[i][j] = A[i][j];
+        (*matrices)->D[i][j] = 0.0;
+        (*matrices)->U[i][j] = 0.0;
+      } 
+      else if (i == j) {
+        (*matrices)->L[i][j] = 0.0;
+        (*matrices)->D[i][j] = A[i][j];
+        (*matrices)->U[i][j] = 0.0;
+      }
+      else if (i < j) {
+        (*matrices)->L[i][j] = 0.0;
+        (*matrices)->D[i][j] = 0.0;
+        (*matrices)->U[i][j] = A[i][j];
+      }
+    }
+  }
 
   *tempo = timestamp() - *tempo;
 }
 
-/**
- * Devolve matriz M⁻¹
- *
- */
-void geraPreCond(real_t *D, real_t *L, real_t *U, real_t w, int n, int k, real_t **M, rtime_t *tempo)
-{
-  *tempo = timestamp();
+void destroiDLU(DLU_matrices_t *matrices, int n) {
+    if (!matrices) return;
 
+    for (int i = 0; i < n; i++) {
+        free(matrices->D[i]);
+        free(matrices->L[i]);
+        free(matrices->U[i]);
+    }
+    free(matrices->D);
+    free(matrices->L);
+    free(matrices->U);
+    free(matrices); // Libera a própria struct no final
+}
 
-  *tempo = timestamp() - *tempo;
+/*
+Houve uma mudança no nome e proposta desta função, que aplica o pré-condicionador para resolver Mz = r.
+O condicionador varia a depender do omega.
+As matrizes D, L e U podem ser nulas, exceto se for utilizado SSOR.
+*/
+void aplicaPreCond(real_t **A, real_t *r, real_t *z, int n, real_t omega, DLU_matrices_t *dlu) {
+  // Caso 1: Sem pré-condicionador (M = I), então z = r.
+  if (omega == -1.0) {
+    copiaVetor(r, z, n);
+  } 
+  // Caso 2: Pré-condicionador de Jacobi (M = D), então zi = ri / Dii.
+  else if (omega == 0.0) {
+    for (int i = 0; i < n; ++i) {
+      if (A[i][i] != 0.0) {
+        z[i] = r[i] / A[i][i];
+      } 
+      else {
+        // Divisão por zero
+        fprintf(stderr, "ERRO: Divisão por zero no pré-condicionador de Jacobi na posição %d.\n", i);
+        exit(EXIT_FAILURE);
+      }
+    }
+  }
+  // Caso 3 e 4: Gauss-Seidel (com omega = 1.0) e SSOR (1.0 < omega < 2.0)
+  else if (omega >= 1.0 && omega < 2.0) {
+    if (!dlu) {
+      fprintf(stderr, "ERRO: Matrizes DLU são necessárias para SSOR, mas são nulas.\n");
+      exit(EXIT_FAILURE);
+    }
+
+    // Aloca um vetor temporário
+    real_t *y = malloc(sizeof(real_t) * n);
+    if (!y) {
+      fprintf(stderr, "ERRO: Durante alocação de vetor temporário!\n");
+      exit(EXIT_FAILURE);
+    }
+
+    // Substituição para frente
+    // Resolve (D/omega + L)y = r
+    for (int i = 0; i < n; ++i) {
+      real_t soma = 0.0; // Cuida do termo do somatório
+      for (int j = 0; j < i; ++j) {
+        soma += dlu->L[i][j] * y[j];
+      }
+      if (dlu->D[i][i] != 0.0) {
+        // Fórmula original
+        y[i] = (r[i] - omega * soma) / dlu->D[i][i];
+      } 
+      else {
+        fprintf(stderr, "ERRO: Divisão por zero na substituição para frente do SSOR.\n");
+        exit(EXIT_FAILURE);
+      }
+    }
+
+    // Substituição para trás
+    // Resolve (D/omega + U)z = (D/omega)*y
+    for (int i = n - 1; i >= 0; --i) {
+      real_t soma = 0.0;
+      for (int j = i + 1; j < n; ++j) {
+        soma += dlu->U[i][j] * z[j];
+      }
+      if (dlu->D[i][i] != 0.0) {
+        // Fórmula algébrica simplificada
+        z[i] = y[i] - (omega * soma) / dlu->D[i][i];
+      } 
+      else {
+        fprintf(stderr, "ERRO: Divisão por zero na substituição para trás do SSOR.\n");
+        exit(EXIT_FAILURE);
+      }
+    }
+
+    free(y);
+  }
+  // Omega inválido
+  else {
+    fprintf(stderr, "ERRO: Valor de omega (%.2f) inválido.\n", omega);
+    exit(EXIT_FAILURE);
+  }
 }
 
 
 real_t calcResiduoSL(real_t **A, real_t *b, real_t *X, int n, rtime_t *tempo) {
   if (!A || !b || !X) {
     fprintf(stderr, "ERRO: Ponteiros inválidos!");
+    exit(EXIT_FAILURE);
   }
 
   *tempo = timestamp();
@@ -266,5 +396,4 @@ real_t calcResiduoSL(real_t **A, real_t *b, real_t *X, int n, rtime_t *tempo) {
   // Raiz quadrada da soma dos quadrados
   return sqrt(norma_L2_quadrada);
 }
-
 
