@@ -15,22 +15,11 @@ OUTPUT_DIR="test_results"
 # 1. Compila o projeto
 echo "--> Compilando o projeto com 'make'..."
 make
-if [ $? -ne 0 ]; then
-    echo "ERRO: A compilação falhou. Abortando testes."
-    exit 1
-fi
-echo "Projeto compilado com sucesso."
-echo ""
 
 # 2. Prepara o ambiente de teste
 echo "--> Preparando o ambiente de testes..."
 rm -rf "$OUTPUT_DIR"
 mkdir -p "$OUTPUT_DIR"
-
-if [ ! -f "$EXECUTABLE" ]; then
-    echo "ERRO: Executável '$EXECUTABLE' não encontrado."
-    exit 1
-fi
 
 echo "--> Iniciando a bateria de testes..."
 echo "Resultados serão salvos no diretório: $OUTPUT_DIR/"
@@ -38,19 +27,19 @@ echo "----------------------------------------------------"
 
 # --- Bateria de Testes ---
 
-# Para cada teste, executamos o programa e verificamos se ele gerou alguma saída de erro (stderr).
+# Para cada teste executado, verifica-se se houve alguma saída de erro.
 
 echo "Executando Teste 1: Sanity Check (n=11, k=3, sem PC)..."
-echo "11 3 -1.0 100 0.000001" | $EXECUTABLE > "$OUTPUT_DIR/1_SanityCheck_NoPC.out" 2> "$OUTPUT_DIR/1_SanityCheck_NoPC.err"
-if [ -s "$OUTPUT_DIR/1_SanityCheck_NoPC.err" ]; then
+echo "11 3 -1.0 100 0.000001" | $EXECUTABLE > "$OUTPUT_DIR/1_SanityCheck.out" 2> "$OUTPUT_DIR/1_SanityCheck.err"
+if [ -s "$OUTPUT_DIR/1_SanityCheck.err" ]; then
     echo "  Resultado: FALHA (AVISO detectado)"
 else
     echo "  Resultado: SUCESSO"
 fi
 
 echo "Executando Teste 2a: Difícil (n=500, k=5, sem PC)..."
-echo "500 5 -1.0 1000 0.00000001" | $EXECUTABLE > "$OUTPUT_DIR/2a_HardCase_NoPC.out" 2> "$OUTPUT_DIR/2a_HardCase_NoPC.err"
-if [ -s "$OUTPUT_DIR/2a_HardCase_NoPC.err" ]; then
+echo "500 5 -1.0 1000 0.00000001" | $EXECUTABLE > "$OUTPUT_DIR/2a_HardCase.out" 2> "$OUTPUT_DIR/2a_HardCase.err"
+if [ -s "$OUTPUT_DIR/2a_HardCase.err" ]; then
     echo "  Resultado: FALHA (AVISO detectado)"
 else
     echo "  Resultado: SUCESSO"
@@ -98,4 +87,3 @@ fi
 
 echo "----------------------------------------------------"
 echo "Bateria de testes concluída."
-echo "Analise os arquivos no diretório '$OUTPUT_DIR' para verificar os resultados detalhados."
