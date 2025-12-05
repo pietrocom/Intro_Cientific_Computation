@@ -1,0 +1,31 @@
+N,Grupo,Metrica,T1_OP1,T1_OP2,T2_OP1,T2_OP2
+32,FLOPS_DP,MFLOP/s,0.0,0.0,0.0,0.0
+32,L2CACHE,L2 miss ratio,0.0,0.0,0.0,0.0
+32,L3,Memory bandwidth,0.0,0.0,0.0,0.0
+64,FLOPS_DP,MFLOP/s,0.0,0.0,0.0,0.0
+64,L2CACHE,L2 miss ratio,0.0,0.0,0.0,0.0
+64,L3,Memory bandwidth,0.0,0.0,0.0,0.0
+128,FLOPS_DP,MFLOP/s,0.0,0.0,0.0,0.0
+128,L2CACHE,L2 miss ratio,0.0,0.0,0.0,0.0
+128,L3,Memory bandwidth,0.0,0.0,0.0,0.0
+256,FLOPS_DP,MFLOP/s,0.0,0.0,0.0,0.0
+256,L2CACHE,L2 miss ratio,0.0,0.0,0.0,0.0
+256,L3,Memory bandwidth,0.0,0.0,0.0,0.0
+512,FLOPS_DP,MFLOP/s,0.0,0.0,0.0,0.0
+512,L2CACHE,L2 miss ratio,0.0,0.0,0.0,0.0
+512,L3,Memory bandwidth,0.0,0.0,0.0,0.0
+1000,FLOPS_DP,MFLOP/s,0.0,0.0,0.0,0.0
+1000,L2CACHE,L2 miss ratio,0.0,0.0,0.0,0.0
+1000,L3,Memory bandwidth,0.0,0.0,0.0,0.0
+2000,FLOPS_DP,MFLOP/s,0.0,0.0,0.0,0.0
+2000,L2CACHE,L2 miss ratio,0.0,0.0,0.0,0.0
+2000,L3,Memory bandwidth,0.0,0.0,0.0,0.0
+4000,FLOPS_DP,MFLOP/s,0.0,0.0,0.0,0.0
+4000,L2CACHE,L2 miss ratio,0.0,0.0,0.0,0.0
+4000,L3,Memory bandwidth,0.0,0.0,0.0,0.0
+8000,FLOPS_DP,MFLOP/s,0.0,0.0,0.0,0.0
+8000,L2CACHE,L2 miss ratio,0.0,0.0,0.0,0.0
+8000,L3,Memory bandwidth,0.0,0.0,0.0,0.0
+10000,FLOPS_DP,MFLOP/s,0.0,0.0,0.0,0.0
+10000,L2CACHE,L2 miss ratio,0.0,0.0,0.0,0.0
+10000,L3,Memory bandwidth,0.0,0.0,0.0,0.0

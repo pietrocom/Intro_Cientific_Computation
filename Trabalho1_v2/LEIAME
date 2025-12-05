@@ -1,0 +1,112 @@
+Trabalho 1: Solução de Sistemas Lineares Esparsos com Pré-condicionadores
+
+Autoria
+
+    Nome: Pietro Comin
+
+    GRR: 20241955
+
+
+Descrição Geral
+
+Este trabalho implementa o método dos Gradientes Conjugados (GC) para a resolução de sistemas 
+lineares na forma Ax=b. O programa foi desenvolvido em linguagem C e é capaz de lidar com sistemas 
+esparsos k-diagonais. Ele aplica diferentes pré-condicionadores para analisar a melhoria na 
+taxa de convergência do método. Foram implementados os casos obrigatórios (sem pré-condicionador 
+e com pré-condicionador de Jacobi) e os casos bônus (pré-condicionadores de Gauss-Seidel Simétrico e SSOR).
+
+Para compilar o programa e gerar o executável cgSolver, utilize "make"
+
+Para compilar em modo de depuração (com a flag -g), utilize: "make debug"
+
+
+Sobre a execução, o programa lê 5 parâmetros da entrada padrão (stdin): n k w maxit epsilon.
+Foi incluído, também, um script de shell (run_tests.sh) para automatizar a execução de uma bateria de testes.
+Antes de rodar, dê permissão com: "chmod +x run_tests.sh".
+O script irá compilar o projeto e executar uma série de testes pré-definidos. Os resultados de cada 
+teste (saída padrão e saída de erro) serão salvos em arquivos separados dentro de um novo diretório chamado 
+test_results/.
+
+
+Estrutura de Arquivos
+
+    cgSolver.c: Contém a função main, que orquestra a execução, lê os parâmetros de entrada e imprime a saída final.
+
+    sislin.h / sislin.c: Contém o núcleo do trabalho. Implementa as funções de criação e manipulação das estruturas de dados.
+
+    utils.h / utils.c: Fornece funções de utilidade, como a timestamp() para medição de tempo.
+
+    Makefile: Arquivo de configuração para a compilação do projeto.
+
+    LEIAME: Este arquivo de documentação.
+
+    run_tests.sh: Script para execução automatizada dos testes.
+
+
+Estruturas de Dados
+
+    Matriz Densa (real_t **): Optou-se por representar as matrizes k-diagonais utilizando uma 
+    estrutura de matriz n x n completa. Esta decisão foi alinhada com o objetivo de focar na 
+    corretude funcional do algoritmo, simplificando operações como a multiplicação de matrizes.
+    A otimização de memória, e por conseguinte desempenho, será abordada no próximo trabalho.
+
+    Struct DLU_matrices_t: Para os pré-condicionadores de Gauss-Seidel e SSOR, foi criada uma 
+    struct para encapsular as matrizes da decomposição (Diagonal D, Triangular Inferior L e 
+    Triangular Superior U). Esta abordagem torna o código mais limpo e legível.
+
+
+Gerenciamento de Memória
+
+O padrão de gerenciamento de memória adotado foi encapsular a alocação dentro das funções "criadoras". 
+Funções como criaKDiagonal e genSimetricaPositiva recebem ponteiros para ponteiros para ponteiros 
+(ex: real_t ***A) e alocam a memória internamente.
+
+
+Algoritmo e Pré-condicionadores
+
+    Transformação para SPD: Conforme exigido pelo enunciado, o sistema Ax=b gerado aleatoriamente 
+        é transformado no sistema equivalente (A^T * A)x = (A^T * b). A função genSimetricaPositiva 
+        implementa essa transformação, garantindo que a matriz do sistema seja Simétrica e Positiva 
+        Definida.
+
+    Pré-condicionadores: A função aplicaPreCond centraliza a lógica para resolver o sistema Mz=r de 
+        acordo com o valor de w:
+
+            - w = -1.0: Sem pré-condicionador (M=I).
+
+            - w = 0.0: Pré-condicionador de Jacobi (M=D).
+
+            - w >= 1.0: Pré-condicionadores de Gauss-Seidel (w=1.0) e SSOR (w>1.0).
+
+
+Validação de Corretude
+
+Para garantir a corretude da implementação, os resultados do cgSolver para um sistema de teste
+de n=11 foram validados. A matriz A^T * A e o vetor A^T * b gerados foram exportados e o sistema 
+foi resolvido de forma independente usando a função numpy.linalg.solve em Python.
+A comparação mostrou que a solução encontrada pelo cgSolver é idêntica à solução exata até a 5ª 
+casa decimal, validando a implementação do algoritmo.
+
+
+Análise de Performance dos Pré-condicionadores
+
+Os testes automatizados foram executados para um sistema de n=500, k=5 com tolerância e=1e-8. 
+Os resultados demonstraram claramente a eficácia da técnica:
+
+    - Sem Pré-condicionador (w=-1.0): O método não convergiu, atingindo o limite de 1000 iterações 
+        com um resíduo final alto.
+
+    - Com Jacobi (w=0.0): O método convergiu com sucesso em 428 iterações.
+
+    - Com Gauss-Seidel (w=1.0): O método convergiu em apenas 163 iterações, mostrando-se muito mais 
+        eficaz para este problema.
+
+    - Com SSOR (w=1.5): O método convergiu em 198 iterações, um resultado melhor que o de Jacobi, mas 
+        não tão otimizado quanto o de Gauss-Seidel para este caso.
+
+A análise mostra o trade-off esperado: apesar do custo por iteração ser maior para Gauss-Seidel/SSOR, 
+a drástica redução no número total de iterações os tornou mais rápidos para encontrar a solução final.
+
+OBS: em cgSolver foi definida uma constante OUTPUT_VISUALIZATION_MODE, que como o nome diz, alterna
+     na forma de mostrar os dados. Quando 0, são exibidos conforme solicitado no enunciado. Quando 1,
+     a saída é formatada de forma a ser mais legível, melhor para depuração manual e visual dos dados.

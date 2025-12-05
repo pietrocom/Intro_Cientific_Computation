@@ -5,34 +5,29 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-
 #include "utils.h"
-#include "sislin.h"
 
-// Estrutura de dados para agrupar matrizes para decomposição DLU
+// Estrutura Otimizada V2 (DIA Format)
 typedef struct {
-    real_t **D;
-    real_t **L;
-    real_t **U;
-} DLU_matrices_t;
+    real_t *diagonals; 
+    int *offsets;      
+    int n;             
+    int k;             
+} MatrizDiagonal_t;
 
-// Funções auxiliares
 real_t produtoEscalar(real_t *v1, real_t *v2, int n);
-void multMatVet(real_t **mat, real_t *vetIn, real_t *vetOut, int n);
+void multMatVet(MatrizDiagonal_t *mat, real_t *vetIn, real_t *vetOut);
 void copiaVetor(real_t *origem, real_t *destino, int n);
-void validaParam (int n, int k);
+void validaParam(int n, int k);
 
-void criaKDiagonal(int n, int k, real_t ***A, real_t **B);
-void destroiKDiagonal (int n, real_t **A, real_t *B);
+MatrizDiagonal_t* alocaMatrizDiagonal(int n, int k, int *offsets);
+void liberaMatrizDiagonal(MatrizDiagonal_t *mat);
 
-void genSimetricaPositiva(real_t **A, real_t *b, int n, real_t ***ASP, real_t **bsp, rtime_t *tempo);
+void criaKDiagonal(int n, int k, MatrizDiagonal_t **A, real_t **B);
+void genSimetricaPositiva(MatrizDiagonal_t *A, real_t *b, int n, MatrizDiagonal_t **ASP, real_t **bsp, rtime_t *tempo);
 
+void aplicaPreCond(MatrizDiagonal_t *A, real_t *r, real_t *z, int n, real_t omega);
+real_t calcResiduoSL(MatrizDiagonal_t *A, real_t *b, real_t *X, int n, rtime_t *tempo);
+real_t resolveSL(MatrizDiagonal_t *A, real_t *b, real_t **X, int n, int maxit, real_t epsilon, real_t omega, rtime_t *tempo_iter, int *out_total_iterations);
 
-void geraDLU(real_t **A, int n, DLU_matrices_t **matrices, rtime_t *tempo);
-void destroiDLU(DLU_matrices_t *matrices, int n);
-
-void aplicaPreCond(real_t **A, real_t *r, real_t *z, int n, real_t omega, DLU_matrices_t *dlu);
-real_t calcResiduoSL(real_t **A, real_t *b, real_t *X, int n, rtime_t *tempo);
-
-#endif // __SISLIN_H__
-
+#endif
